@@ -1,15 +1,18 @@
 import { state } from "./state"
+import { formatNumber } from './format';
 
 export type Upgrade = {
   id: string
   name: string
   category: string
   symbol: string
+  formula: number
   description: string
   cost: number
   level: number
   unlocked: boolean
   unlock: () => boolean
+  display: () => string
   buy: () => void
 }
 
@@ -19,13 +22,18 @@ export const upgrades: Upgrade[] = [
     name: "Addition",
     category: "generation",
     symbol: "C",
+    formula: state.manualPower.value,
     description: `+ 1`,
-    cost: 1,
+    cost: 10,
     level: 0,
-    unlocked: false,
+    unlocked: true,
 
     unlock() {
-      return state.numbers.value >= 5
+      return true
+    },
+
+    display() {
+      return `${this.symbol} = ${formatNumber(this.formula)}`
     },
 
     buy() {
@@ -33,7 +41,7 @@ export const upgrades: Upgrade[] = [
         state.numbers.value -= this.cost
         state.manualPower.value += 1
         this.level += 1
-        this.cost *= 2
+        this.cost *= 1.65
       }
     }
   },
@@ -43,45 +51,26 @@ export const upgrades: Upgrade[] = [
     name: "Passive Generation",
     category: "generation",
     symbol: "P",
-    description: `+ 0.5`,
-    cost: 2,
+    formula: state.passiveRate.value,
+    description: `+ 0.15`,
+    cost: 35,
     level: 0,
     unlocked: false,
 
     unlock() {
-      return state.numbers.value >= 50
+      return state.numbers.value >= 25
+    },
+
+    display() {
+      return `${this.symbol} = ${formatNumber(this.formula)}`
     },
 
     buy() {
       if(state.numbers.value >= this.cost) {
         state.numbers.value -= this.cost
-        state.passiveRate.value += 0.5
+        state.passiveRate.value += 0.15
         this.level += 1
-        this.cost *= 2.5
-      }
-    }
-  },
-
-  {
-    id: "multiplication",
-    name: "Multiplication",
-    category: "generation",
-    symbol: "M",
-    description: `+ 0.25`,
-    cost: 1,
-    level: 0,
-    unlocked: false,
-
-    unlock() {
-      return state.numbers.value >= 250
-    },
-
-    buy() {
-      if(state.numbers.value >= this.cost) {
-        state.numbers.value -= this.cost
-        state.globalMultiplier.value += 0.25
-        this.level += 1
-        this.cost *= 4
+        this.cost *= 1.85
       }
     }
   },
@@ -91,8 +80,9 @@ export const upgrades: Upgrade[] = [
     name: "Tickspeed",
     category: "generation",
     symbol: "T",
-    description: `+ 0.3`,
-    cost: 1,
+    formula: state.tickSpeed.value,
+    description: `+ 0.1`,
+    cost: 150,
     level: 0,
     unlocked: false,
 
@@ -100,12 +90,45 @@ export const upgrades: Upgrade[] = [
       return state.passiveRate.value > 0
     },
 
+    display() {
+      return `${this.symbol} = ${formatNumber(this.formula)}`
+    },
+
     buy() {
       if(state.numbers.value >= this.cost) {
         state.numbers.value -= this.cost
-        state.tickSpeed.value += 0.3
+        state.tickSpeed.value += 0.1
         this.level += 1
-        this.cost *= 6
+        this.cost *= 2.75
+      }
+    }
+  },
+
+  {
+    id: "multiplication",
+    name: "Multiplication",
+    category: "generation",
+    symbol: "M",
+    formula: state.globalMultiplier.value,
+    description: `+ 0.05`,
+    cost: 500,
+    level: 0,
+    unlocked: false,
+
+    unlock() {
+      return state.numbers.value >= 250
+    },
+
+    display() {
+      return `${this.symbol} = ${formatNumber(this.formula)}`
+    },
+
+    buy() {
+      if(state.numbers.value >= this.cost) {
+        state.numbers.value -= this.cost
+        state.globalMultiplier.value += 0.05
+        this.level += 1
+        this.cost *= 4.5
       }
     }
   },
@@ -115,8 +138,9 @@ export const upgrades: Upgrade[] = [
     name: "Addition Auto-buyer",
     category: "automation",
     symbol: "+C",
-    description: `+ 0.2`,
-    cost: 2,
+    formula: state.manualPowerAuto.value,
+    description: `+ 0.03`,
+    cost: 1200,
     level: 0,
     unlocked: false,
 
@@ -124,12 +148,16 @@ export const upgrades: Upgrade[] = [
       return state.numbers.value >= 1000
     },
 
+    display() {
+      return `${this.symbol} = ${formatNumber(this.formula)}`
+    },
+
     buy() {
       if(state.numbers.value >= this.cost) {
         state.numbers.value -= this.cost
-        state.manualPowerAuto.value += 0.2 
+        state.manualPowerAuto.value += 0.03
         this.level += 1
-        this.cost *= 5
+        this.cost *= 2.8
       }
     }
   },
@@ -139,45 +167,26 @@ export const upgrades: Upgrade[] = [
     name: "Passive Generation Auto-buyer",
     category: "automation",
     symbol: "+P",
-    description: `+ 0.1`,
-    cost: 5,
-    level: 0,
-    unlocked: false,
-
-    unlock() {
-      return state.numbers.value >= 1000
-    },
-
-    buy() {
-      if(state.numbers.value >= this.cost) {
-        state.numbers.value -= this.cost
-        state.passiveRateAuto.value += 0.1
-        this.level += 1
-        this.cost *= 5
-      }
-    }
-  },
-
-  {
-    id: "multiplier-buy",
-    name: "Multiplication Auto-buyer",
-    category: "automation",
-    symbol: "+M",
+    formula: state.passiveRateAuto.value,
     description: `+ 0.01`,
-    cost: 1,
+    cost: 2500,
     level: 0,
     unlocked: false,
 
     unlock() {
-      return state.numbers.value >= 1000
+      return state.numbers.value >= 1500 && state.passiveRate.value >0
+    },
+
+    display() {
+      return `${this.symbol} = ${formatNumber(this.formula)}`
     },
 
     buy() {
       if(state.numbers.value >= this.cost) {
         state.numbers.value -= this.cost
-        state.globalMultiplierAuto.value += 0.01 
+        state.passiveRateAuto.value += 0.01
         this.level += 1
-        this.cost *= 5
+        this.cost *= 3.25
       }
     }
   },
@@ -187,21 +196,55 @@ export const upgrades: Upgrade[] = [
     name: "Tickspeed Auto-buyer",
     category: "automation",
     symbol: "+T",
-    description: `+ 0.01`,
-    cost: 1,
+    formula: state.tickSpeedAuto.value,
+    description: `+ 0.002`,
+    cost: 6000,
     level: 0,
     unlocked: false,
 
     unlock() {
-      return state.numbers.value >= 1000
+      return state.numbers.value >= 3000 && state.tickSpeed.value > 1
+    },
+
+    display() {
+      return `${this.symbol} = ${formatNumber(this.formula)}`
     },
 
     buy() {
       if(state.numbers.value >= this.cost) {
         state.numbers.value -= this.cost
-        state.tickSpeedAuto.value += 0.01 
+        state.tickSpeedAuto.value += 0.002
         this.level += 1
-        this.cost *= 5
+        this.cost *= 4
+      }
+    }
+  },
+
+  {
+    id: "multiplier-buy",
+    name: "Multiplication Auto-buyer",
+    category: "automation",
+    symbol: "+M",
+    formula: state.globalMultiplierAuto.value,
+    description: `+ 0.001`,
+    cost: 12000,
+    level: 0,
+    unlocked: false,
+
+    unlock() {
+      return state.numbers.value >= 5000 && state.globalMultiplier.value > 1
+    },
+
+    display() {
+      return `${this.symbol} = ${formatNumber(this.formula)}`
+    },
+
+    buy() {
+      if(state.numbers.value >= this.cost) {
+        state.numbers.value -= this.cost
+        state.globalMultiplierAuto.value += 0.001 
+        this.level += 1
+        this.cost *= 5.5
       }
     }
   },

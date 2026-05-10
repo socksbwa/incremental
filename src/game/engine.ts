@@ -14,7 +14,7 @@ export function startGameLoop() {
   gameLoopStarted = true
 
   setInterval(() => {
-    state.numbers.value += state.passiveRate.value * state.globalMultiplier.value * state.tickSpeed.value,
+    state.numbers.value += state.passiveRate.value * state.globalMultiplier.value * state.tickSpeed.value
     state.manualPower.value += state.manualPowerAuto.value
     state.passiveRate.value += state.passiveRateAuto.value
     state.globalMultiplier.value += state.globalMultiplierAuto.value
