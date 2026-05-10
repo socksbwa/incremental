@@ -35,7 +35,7 @@ async function handleBuy() {
       <strong>{{ upgrade.name }}</strong>
 
       <small>
-        {{ upgrade.description }} {{ upgrade.display() }}
+        {{ upgrade.display() }} {{ upgrade.description }} 
       </small>
     </span>
 
