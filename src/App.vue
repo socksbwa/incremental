@@ -8,78 +8,102 @@
   import { generateNumber, startGameLoop } from './game/engine';
   import { upgrades } from './game/upgrades';
 
-  const currentFormula = computed(() => {
+const currentFormula = computed(() => {
 
-    const C = `{C}{\\scriptsize[${state.manualPower.value.toFixed(2)}]}`
-    const P = `{P}{\\scriptsize[${state.passiveRate.value.toFixed(2)}]}`
-    const M = `{M}{\\scriptsize[${state.globalMultiplier.value.toFixed(2)}]}`
-    const T = `{T}{\\scriptsize[${state.tickSpeed.value.toFixed(2)}]}`
+  const C = `C{\\scriptsize[${state.manualPower.value.toFixed(2)}]}`
+  const P = `P{\\scriptsize[${state.passiveRate.value.toFixed(2)}]}`
+  const T = `T{\\scriptsize[${state.tickSpeed.value.toFixed(2)}]}`
+  const M = `M{\\scriptsize[${state.globalMultiplier.value.toFixed(2)}]}`
 
-    const CB = `{\\scriptsize[C+}{\\scriptsize${state.manualPowerAuto.value.toFixed(2)}]}`
-    const PB = `{\\scriptsize[P+}{\\scriptsize${state.passiveRateAuto.value.toFixed(2)}]}`
-    const MB = `{\\scriptsize[M+}{\\scriptsize${state.globalMultiplierAuto.value.toFixed(2)}]}`
-    const TB = `{\\scriptsize[T+}{\\scriptsize${state.tickSpeedAuto.value.toFixed(2)}]}`
+  const CB = `{\\tiny [+C\\ ${state.manualPowerAuto.value.toFixed(2)}/s]}`
+  const PB = `{\\tiny [+P\\ ${state.passiveRateAuto.value.toFixed(2)}/s]}`
+  const MB = `{\\tiny [+M\\ ${state.globalMultiplierAuto.value.toFixed(2)}/s]}`
+  const TB = `{\\tiny [+T\\ ${state.tickSpeedAuto.value.toFixed(2)}/s]}`
 
-    
-    let clickTerm = C
+  let clickTerm = `${C}`
 
-    if (state.manualPowerAuto.value > 0) {
-      clickTerm = `(${clickTerm} + ${CB})`
+  if (state.manualPowerAuto.value > 0) {
+    clickTerm = `(${clickTerm} + ${CB})`
+  }
+
+  let formula = clickTerm
+
+  if (state.passiveRate.value > 0) {
+
+    let passiveTerm = `${P}`
+
+    if (state.passiveRateAuto.value > 0) {
+      passiveTerm = `(${passiveTerm} + ${PB})`
     }
 
-    let formula = clickTerm
+  if (state.tickSpeed.value > 1) {
+    let tickTerm = `${T}`
 
-    if (state.passiveRate.value > 0.01) {
-      let passiveTerm = P
-
-      if (state.tickSpeed.value > 1) {
-        passiveTerm = `${passiveTerm}${T}`
-      }
-
-      if (state.passiveRateAuto.value > 0) {
-        passiveTerm = `(${passiveTerm} + ${PB})`
-      }
-
-      if (state.tickSpeedAuto.value > 0) {
-        passiveTerm = `(${passiveTerm} + ${TB})`
-      }
-
-      formula = `(${formula} + ${passiveTerm})`
+    if (state.tickSpeedAuto.value > 0) {
+      tickTerm = `(${tickTerm} + ${TB})`
     }
 
-    if (state.globalMultiplier.value > 1) {
-      let multiplierTerm = M
+    formula = `(${formula} + (${passiveTerm} \\cdot ${tickTerm}))`
+  } else {
+    formula = `(${formula} + ${passiveTerm})`
+  }
+  }
 
-      if (state.globalMultiplierAuto.value > 0) {
-        multiplierTerm = `(${multiplierTerm} + ${MB})`
-      }
+  if (state.globalMultiplier.value > 1) {
 
-      formula = `${formula}${multiplierTerm}`
+    let multiplierTerm = `${M}`
+
+    if (state.globalMultiplierAuto.value > 0) {
+      multiplierTerm = `(${multiplierTerm} + ${MB})`
     }
 
-    return formula
-  })
+    formula = `${formula}${multiplierTerm}`
+  }
+
+  return formula
+})
 
   const renderedFormula = computed(() => {
-    return katex.renderToString(`N + ${currentFormula.value}`, {
-      throwOnError: false,
-      displayMode: true
-    })
+    return katex.renderToString(
+      `N + ${currentFormula.value}`,
+      {
+        throwOnError: false,
+        displayMode: true
+      }
+    )
   })
 
+  function isUnlocked(u: Upgrade) {
+    if (!u.unlocked && u.unlock()) {
+      u.unlocked = true
+    }
+
+    return u.unlocked
+  }
+
   const generationUpgrades = computed(() => 
-    upgrades.filter(u => u.category === "generation")
-  )
+    upgrades.filter(
+      u => 
+        u.category === "generation" &&
+        isUnlocked(u)
+  ))
 
   const automationUpgrades = computed(() => 
-    upgrades.filter(u => u.category === "automation")
-  )
+    upgrades.filter(
+      u => 
+        u.category === "automation" &&
+        isUnlocked(u)
+  ))
 
   startGameLoop()
 
 </script>
 
 <template>
+
+  <div class="dev-banner">
+  DEV BUILD
+  </div>
 
   <main class="game">
     
@@ -332,7 +356,22 @@
   display: flex;
 
   flex-direction: column;
-}
+  }
+
+  .dev-banner {
+    position: fixed;
+    top: 0;
+    right: 0;
+
+    background: red;
+    color: white;
+
+    padding: 6px 12px;
+
+    font-size: 12px;
+
+    z-index: 9999;
+  }
 
   button {
     background: transparent;
