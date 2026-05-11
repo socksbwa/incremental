@@ -40,7 +40,7 @@ async function handleBuy() {
     </span>
 
     <span class="upgrade-meta">
-      Cost: {{ formatNumber(upgrade.cost) }} | Lv: {{ upgrade.level }}
+      {{ formatNumber(upgrade.cost) }} • Lv {{ upgrade.level }}
     </span>
 
   </button>
@@ -52,7 +52,7 @@ async function handleBuy() {
 .upgrade-button {
   user-select: none;
   display: grid;
-  grid-template-columns: 70px 1fr auto;
+  grid-template-columns: 60px 1fr auto;
 
   align-items: center;
 
@@ -97,6 +97,18 @@ async function handleBuy() {
   border-color: rgba(255, 255, 255, 0.08);
 
   color: rgba(255, 255, 255, 0.4);
+}
+
+.upgrade-info {
+  min-width: 0;
+}
+
+.upgrade-meta {
+  white-space: nowrap;
+}
+
+.upgrade-info strong {
+  white-space: nowrap;
 }
 
 button {

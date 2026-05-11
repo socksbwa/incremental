@@ -1,176 +1,353 @@
 <script setup lang="ts">
+import { computed, onMounted, ref } from "vue"
 
-  import { saveGame, loadGame, startAutoSave } from "./game/save"
+import { state } from "./game/state"
+import { generateNumber, startGameLoop } from "./game/engine"
+import { upgrades } from "./game/upgrades"
+import type { Upgrade } from "./game/upgrades"
+import {
+  loadGame,
+  startAutoSave,
+  exportSaveFile,
+  importSaveFile,
+  resetGame
+} from "./game/save"
 
-  import { computed, onMounted } from "vue"
-  import "katex/dist/katex.min.css"
+import FormulaPanel from "./components/FormulaPanel.vue"
+import UpgradeColumn from "./components/UpgradeColumn.vue"
+import NumberDisplay from "./components/NumberDisplay.vue"
+import MilestonePanel from "./components/MilestonePanel.vue"
 
-  import { state } from "./game/state"
-  import { generateNumber, startGameLoop } from "./game/engine"
-  import { upgrades } from "./game/upgrades"
-  import type { Upgrade } from "./game/upgrades"
+const activeUpgradeTab = ref("generation")
 
-  import FormulaPanel from "./components/FormulaPanel.vue"
-  import UpgradeColumn from "./components/UpgradeColumn.vue"
-  import NumberDisplay from "./components/NumberDisplay.vue"
-
-  import { playClickSound } from "./game/audio"
-
-  async function handleGenerateNumber() {
-    generateNumber()
-    await playClickSound()
+function isUnlocked(u: Upgrade) {
+  if (!u.unlocked && u.unlock()) {
+    u.unlocked = true
   }
 
-  function isUnlocked(u: Upgrade) {
-    if (!u.unlocked && u.unlock()) {
-      u.unlocked = true
-    }
+  return u.unlocked
+}
 
-    return u.unlocked
+const generationUpgrades = computed(() =>
+  upgrades.filter(
+    u =>
+      u.category === "generation" &&
+      isUnlocked(u)
+  )
+)
+
+const automationUpgrades = computed(() =>
+  upgrades.filter(
+    u =>
+      u.category === "automation" &&
+      isUnlocked(u)
+  )
+)
+
+const transformationUpgrades = computed(() =>
+  upgrades.filter(
+    u =>
+      u.category === "transformation" &&
+      isUnlocked(u)
+  )
+)
+
+const visibleUpgradeTabs = computed(() => {
+  const tabs = []
+
+  if (generationUpgrades.value.length > 0) {
+    tabs.push({
+      id: "generation",
+      title: "Generation",
+      upgrades: generationUpgrades.value
+    })
   }
 
-  const generationUpgrades = computed(() => 
-    upgrades.filter(
-      u => 
-        u.category === "generation" &&
-        isUnlocked(u)
-  ))
+  if (automationUpgrades.value.length > 0) {
+    tabs.push({
+      id: "automation",
+      title: "Automation",
+      upgrades: automationUpgrades.value
+    })
+  }
 
-  const automationUpgrades = computed(() => 
-    upgrades.filter(
-      u => 
-        u.category === "automation" &&
-        isUnlocked(u)
-  ))
+  if (transformationUpgrades.value.length > 0) {
+    tabs.push({
+      id: "transformation",
+      title: "Transform",
+      upgrades: transformationUpgrades.value
+    })
+  }
 
-  onMounted(() => {
-    loadGame()
-    startGameLoop()
-    startAutoSave()
-  })
+  return tabs
+})
 
+const activeUpgrades = computed(() => {
+  const activeTab = visibleUpgradeTabs.value.find(
+    tab => tab.id === activeUpgradeTab.value
+  )
+
+  if (activeTab) {
+    return activeTab.upgrades
+  }
+
+  return visibleUpgradeTabs.value[0]?.upgrades ?? []
+})
+
+const activeTabTitle = computed(() => {
+  const activeTab = visibleUpgradeTabs.value.find(
+    tab => tab.id === activeUpgradeTab.value
+  )
+
+  return activeTab?.title ?? visibleUpgradeTabs.value[0]?.title ?? "Upgrades"
+})
+
+async function handleSaveFileLoad(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+
+  if (!file) {
+    return
+  }
+
+  await importSaveFile(file)
+
+  input.value = ""
+}
+
+onMounted(() => {
+  loadGame()
+  startGameLoop()
+  startAutoSave()
+})
 </script>
 
 <template>
+  <div class="dev-banner">
+    DEV BUILD
+  </div>
+
+  <MilestonePanel />
 
   <main class="game">
-    
+
+  <MilestonePanel />
+
+  <section class="center-panel">
+
     <FormulaPanel />
 
     <NumberDisplay />
 
-
-    <button @click="handleGenerateNumber">
+    <button @click="generateNumber">
       Generate Number
     </button>
 
     <div class="save-controls">
-      <button @click="saveGame">
-        Save
+
+      <button @click="exportSaveFile">
+        Export Save
       </button>
 
-      <button @click="loadGame">
-        Load
+      <label class="load-button">
+        Import Save
+
+        <input
+          type="file"
+          accept=".txt"
+          hidden
+          @change="handleSaveFileLoad"
+        />
+      </label>
+
+      <button
+        class="reset-button"
+        @click="resetGame"
+      >
+        Reset Data
       </button>
+
     </div>
-    
-    <section class="systems-layout">
+
+    <aside
+      v-if="visibleUpgradeTabs.length > 0"
+      class="upgrade-panel"
+    >
+
+      <div class="upgrade-tabs">
+
+        <button
+          v-for="tab in visibleUpgradeTabs"
+          :key="tab.id"
+          class="tab-button"
+          :class="{ active: activeUpgradeTab === tab.id }"
+          @click="activeUpgradeTab = tab.id"
+        >
+          {{ tab.title }}
+        </button>
+
+      </div>
 
       <UpgradeColumn
-        title="Generation Upgrades"
-        :upgrades="generationUpgrades"
+        :title="activeTabTitle"
+        :upgrades="activeUpgrades"
         :numbers="state.numbers.value"
       />
 
-      <UpgradeColumn
-        title="Automation Upgrades"
-        :upgrades="automationUpgrades"
-        :numbers="state.numbers.value"
-      />
+    </aside>
 
-    </section>
+  </section>
 
-  </main>
-
+</main>
 </template>
 
 <style scoped>
+.game {
+  min-height: 100vh;
 
-  .game {
-    min-height: 100vh;
-    background:
-      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px),
-      #05070a;
+  background:
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px),
+    #05070a;
 
-    background-size: 40px 40px;
+  background-size: 40px 40px;
 
-    color: #dfffe2;
+  color: #dfffe2;
 
-    font-family: Consolas, monospace;
+  font-family: Consolas, monospace;
 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
 
-    padding: 48px;
-  }
+  padding: 48px;
+}
 
-  .systems-layout {
-    width: 100%;
+.center-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-    max-width: 1400px;
+.upgrade-panel {
+  position: fixed;
 
-    display: grid;
+  top: 320px;
+  left: 24px;
 
-    grid-template-columns: 1fr 1fr;
+  width: 560px;
 
-    gap: 48px;
+  max-height: calc(100vh - 340px);
 
-    margin-top: 48px;
-  }
+  overflow-y: auto;
 
-  .dev-banner {
-    position: fixed;
-    top: 0;
-    right: 0;
+  border: 1px solid rgba(223, 255, 226, 0.12);
 
-    background: red;
-    color: white;
+  background: rgba(5, 7, 10, 0.92);
 
-    padding: 6px 12px;
+  padding: 16px;
 
-    font-size: 12px;
+  backdrop-filter: blur(8px);
+}
 
-    z-index: 9999;
-  }
+.upgrade-tabs {
+  display: flex;
 
-  button {
-    background: transparent;
+  gap: 8px;
 
-    color: #dfffe2;
+  margin-bottom: 12px;
+}
 
-    border: 1px solid rgba(223, 255, 226, 0.4);
+.tab-button {
+  flex: 1;
 
-    padding: 16px 32px;
+  padding: 10px;
 
-    font-family: Consolas, monospace;
+  font-size: 12px;
+}
 
-    font-size: 18px;
+.tab-button.active {
+  background: rgba(120, 255, 160, 0.14);
 
-    cursor: pointer;
-  }
+  border-color: rgba(120, 255, 160, 0.7);
+}
 
-  button:hover {
-    background: rgba(120, 255, 160, 0.12);
+.save-controls {
+  display: flex;
 
-    box-shadow: 0 0 20px rgba(120, 255, 160, 0.2);
-  }
+  gap: 12px;
 
-  .save-controls {
-    display: flex;
-    gap: 12px;
-    margin-top: 16px;
-  }
+  margin-top: 16px;
+}
 
+.load-button {
+  background: transparent;
+
+  color: #dfffe2;
+
+  border: 1px solid rgba(223, 255, 226, 0.4);
+
+  padding: 16px 32px;
+
+  font-family: Consolas, monospace;
+
+  font-size: 18px;
+
+  cursor: pointer;
+}
+
+.load-button:hover {
+  background: rgba(120, 255, 160, 0.12);
+
+  box-shadow: 0 0 20px rgba(120, 255, 160, 0.2);
+}
+
+.dev-banner {
+  position: fixed;
+
+  top: 0;
+  right: 0;
+
+  background: red;
+
+  color: white;
+
+  padding: 6px 12px;
+
+  font-size: 12px;
+
+  z-index: 9999;
+}
+
+button {
+  background: transparent;
+
+  color: #dfffe2;
+
+  border: 1px solid rgba(223, 255, 226, 0.4);
+
+  padding: 16px 32px;
+
+  font-family: Consolas, monospace;
+
+  font-size: 18px;
+
+  cursor: pointer;
+}
+
+button:hover {
+  background: rgba(120, 255, 160, 0.12);
+
+  box-shadow: 0 0 20px rgba(120, 255, 160, 0.2);
+}
+
+.reset-button {
+  border-color: rgba(255, 80, 80, 0.45);
+}
+
+.reset-button:hover {
+  background: rgba(255, 80, 80, 0.12);
+
+  box-shadow: 0 0 20px rgba(255, 80, 80, 0.2);
+}
 </style>

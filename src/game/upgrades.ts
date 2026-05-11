@@ -33,7 +33,7 @@ export const upgrades: Upgrade[] = [
     },
 
     display() {
-      return `${this.symbol} = ${formatNumber(this.formula)}`
+      return `${this.symbol} = ${formatNumber(state.manualPower.value)}`
     },
 
     buy() {
@@ -62,7 +62,7 @@ export const upgrades: Upgrade[] = [
     },
 
     display() {
-      return `${this.symbol} = ${formatNumber(this.formula)}`
+      return `${this.symbol} = ${formatNumber(state.passiveRate.value)}`
     },
 
     buy() {
@@ -91,7 +91,7 @@ export const upgrades: Upgrade[] = [
     },
 
     display() {
-      return `${this.symbol} = ${formatNumber(this.formula)}`
+      return `${this.symbol} = ${formatNumber(state.tickSpeed.value)}`
     },
 
     buy() {
@@ -120,7 +120,7 @@ export const upgrades: Upgrade[] = [
     },
 
     display() {
-      return `${this.symbol} = ${formatNumber(this.formula)}`
+      return `${this.symbol} = ${formatNumber(state.globalMultiplier.value)}`
     },
 
     buy() {
@@ -149,7 +149,7 @@ export const upgrades: Upgrade[] = [
     },
 
     display() {
-      return `${this.symbol} = ${formatNumber(this.formula)}`
+      return `${this.symbol} = ${formatNumber(state.manualPowerAuto.value)}`
     },
 
     buy() {
@@ -178,7 +178,7 @@ export const upgrades: Upgrade[] = [
     },
 
     display() {
-      return `${this.symbol} = ${formatNumber(this.formula)}`
+      return `${this.symbol} = ${formatNumber(state.passiveRateAuto.value)}`
     },
 
     buy() {
@@ -207,7 +207,7 @@ export const upgrades: Upgrade[] = [
     },
 
     display() {
-      return `${this.symbol} = ${formatNumber(this.formula)}`
+      return `${this.symbol} = ${formatNumber(state.tickSpeedAuto.value)}`
     },
 
     buy() {
@@ -236,7 +236,7 @@ export const upgrades: Upgrade[] = [
     },
 
     display() {
-      return `${this.symbol} = ${formatNumber(this.formula)}`
+      return `${this.symbol} = ${formatNumber(state.globalMultiplierAuto.value)}`
     },
 
     buy() {
@@ -248,5 +248,121 @@ export const upgrades: Upgrade[] = [
       }
     }
   },
+
+  {
+  id: "manual-exponent",
+  name: "Manual Exponent",
+  category: "transformation",
+  symbol: "Cⁿ",
+  formula: state.manualPowerExponent.value,
+  description: "+ 1",
+  cost: 20000,
+  level: 0,
+  unlocked: false,
+
+  unlock() {
+    return state.manualPower.value >= 25
+  },
+
+  display() {
+    return `${this.symbol} = ${state.manualPowerExponent.value}`
+  },
+
+  buy() {
+    if (state.numbers.value >= this.cost) {
+      state.numbers.value -= this.cost
+      state.manualPowerExponent.value += 1
+      this.level += 1
+      this.cost *= 8
+    }
+  }
+},
+
+{
+  id: "passive-exponent",
+  name: "Passive Exponent",
+  category: "transformation",
+  symbol: "Pⁿ",
+  formula: state.passiveRateExponent.value,
+  description: "+ 1",
+  cost: 50000,
+  level: 0,
+  unlocked: false,
+
+  unlock() {
+    return state.passiveRate.value >= 5
+  },
+
+  display() {
+    return `${this.symbol} = ${state.passiveRateExponent.value}`
+  },
+
+  buy() {
+    if (state.numbers.value >= this.cost) {
+      state.numbers.value -= this.cost
+      state.passiveRateExponent.value += 1
+      this.level += 1
+      this.cost *= 9
+    }
+  }
+},
+
+{
+  id: "tickspeed-exponent",
+  name: "Tickspeed Exponent",
+  category: "transformation",
+  symbol: "Tⁿ",
+  formula: state.tickSpeedExponent.value,
+  description: "+ 1",
+  cost: 100000,
+  level: 0,
+  unlocked: false,
+
+  unlock() {
+    return state.tickSpeed.value >= 3
+  },
+
+  display() {
+    return `${this.symbol} = ${state.tickSpeedExponent.value}`
+  },
+
+  buy() {
+    if (state.numbers.value >= this.cost) {
+      state.numbers.value -= this.cost
+      state.tickSpeedExponent.value += 1
+      this.level += 1
+      this.cost *= 10
+    }
+  }
+},
+
+{
+  id: "multiplier-exponent",
+  name: "Multiplier Exponent",
+  category: "transformation",
+  symbol: "Mⁿ",
+  formula: state.globalMultiplierExponent.value,
+  description: "+ 1",
+  cost: 250000,
+  level: 0,
+  unlocked: false,
+
+  unlock() {
+    return state.globalMultiplier.value >= 2
+  },
+
+  display() {
+    return `${this.symbol} = ${state.globalMultiplierExponent.value}`
+  },
+
+  buy() {
+    if (state.numbers.value >= this.cost) {
+      state.numbers.value -= this.cost
+      state.globalMultiplierExponent.value += 1
+      this.level += 1
+      this.cost *= 12
+    }
+  }
+},
 
 ]

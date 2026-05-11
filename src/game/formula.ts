@@ -6,16 +6,31 @@ import katex from "katex"
 import { state } from "./state"
 
 export const currentFormula = computed(() => {
+  const CBase = `{${formatNumber(state.manualPower.value)} \\small c}`
+  const PBase = `{${formatNumber(state.passiveRate.value)} \\small s}`
+  const TBase = `{${formatNumber(state.tickSpeed.value)} \\small s}`
+  const MBase = `{${formatNumber(state.globalMultiplier.value)}}`
 
-  const C = `C{\\scriptsize[${formatNumber(state.manualPower.value)}]}`
-  const P = `P{\\scriptsize[${formatNumber(state.passiveRate.value)}]}`
-  const T = `T{\\scriptsize[${formatNumber(state.tickSpeed.value)}]}`
-  const M = `M{\\scriptsize[${formatNumber(state.globalMultiplier.value)}]}`
+  const C = state.manualPowerExponent.value > 1
+    ? `${CBase}^{${state.manualPowerExponent.value}}`
+    : CBase
 
-  const CB = `{\\tiny [+C\\ ${formatNumber(state.manualPowerAuto.value)}/s]}`
-  const PB = `{\\tiny [+P\\ ${formatNumber(state.passiveRateAuto.value)}/s]}`
-  const MB = `{\\tiny [+M\\ ${formatNumber(state.globalMultiplierAuto.value)}/s]}`
-  const TB = `{\\tiny [+T\\ ${formatNumber(state.tickSpeedAuto.value)}/s]}`
+  const P = state.passiveRateExponent.value > 1
+    ? `${PBase}^{${state.passiveRateExponent.value}}`
+    : PBase
+
+  const T = state.tickSpeedExponent.value > 1
+    ? `${TBase}^{${state.tickSpeedExponent.value}}`
+    : TBase
+
+  const M = state.globalMultiplierExponent.value > 1
+    ? `${MBase}^{${state.globalMultiplierExponent.value}}`
+    : MBase
+
+  const CB = `{${formatNumber(state.manualPowerAuto.value)} \\small s}`
+  const PB = `{${formatNumber(state.passiveRateAuto.value)} \\small s}`
+  const MB = `{${formatNumber(state.globalMultiplierAuto.value)} \\small s}`
+  const TB = `{${formatNumber(state.tickSpeedAuto.value)} \\small s}`
 
   let clickTerm = `${C}`
 
@@ -26,7 +41,6 @@ export const currentFormula = computed(() => {
   let formula = clickTerm
 
   if (state.passiveRate.value > 0) {
-
     let passiveTerm = `${P}`
 
     if (state.passiveRateAuto.value > 0) {
@@ -47,7 +61,6 @@ export const currentFormula = computed(() => {
   }
 
   if (state.globalMultiplier.value > 1) {
-
     let multiplierTerm = `${M}`
 
     if (state.globalMultiplierAuto.value > 0) {
@@ -60,12 +73,9 @@ export const currentFormula = computed(() => {
   return formula
 })
 
-  export const renderedFormula = computed(() => {
-    return katex.renderToString(
-      `N + ${currentFormula.value}`,
-      {
-        throwOnError: false,
-        displayMode: true
-      }
-    )
+export const renderedFormula = computed(() => {
+  return katex.renderToString(`N + ${currentFormula.value}`, {
+    throwOnError: false,
+    displayMode: true
   })
+})

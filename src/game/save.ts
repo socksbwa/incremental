@@ -4,23 +4,22 @@ import { upgrades } from "./upgrades"
 const SAVE_KEY = "incremental-save"
 
 export function saveGame() {
-
   const saveData = {
-
     state: {
       numbers: state.numbers.value,
+
       manualPower: state.manualPower.value,
       passiveRate: state.passiveRate.value,
-      tickSpeed: state.tickSpeed.value,
       globalMultiplier: state.globalMultiplier.value,
+      tickSpeed: state.tickSpeed.value,
 
       manualPowerAuto: state.manualPowerAuto.value,
       passiveRateAuto: state.passiveRateAuto.value,
-      tickSpeedAuto: state.tickSpeedAuto.value,
-      globalMultiplierAuto: state.globalMultiplierAuto.value
+      globalMultiplierAuto: state.globalMultiplierAuto.value,
+      tickSpeedAuto: state.tickSpeedAuto.value
     },
 
-    upgrades: upgrades.map(u => ({
+    upgrades: upgrades.map((u) => ({
       id: u.id,
       cost: u.cost,
       level: u.level,
@@ -28,14 +27,10 @@ export function saveGame() {
     }))
   }
 
-  localStorage.setItem(
-    SAVE_KEY,
-    JSON.stringify(saveData)
-  )
+  localStorage.setItem(SAVE_KEY, JSON.stringify(saveData))
 }
 
 export function loadGame() {
-
   const rawSave = localStorage.getItem(SAVE_KEY)
 
   if (!rawSave) {
@@ -47,21 +42,19 @@ export function loadGame() {
   const s = saveData.state
 
   state.numbers.value = s.numbers
+
   state.manualPower.value = s.manualPower
   state.passiveRate.value = s.passiveRate
-  state.tickSpeed.value = s.tickSpeed
   state.globalMultiplier.value = s.globalMultiplier
+  state.tickSpeed.value = s.tickSpeed
 
   state.manualPowerAuto.value = s.manualPowerAuto
   state.passiveRateAuto.value = s.passiveRateAuto
-  state.tickSpeedAuto.value = s.tickSpeedAuto
   state.globalMultiplierAuto.value = s.globalMultiplierAuto
+  state.tickSpeedAuto.value = s.tickSpeedAuto
 
   for (const savedUpgrade of saveData.upgrades) {
-
-    const upgrade = upgrades.find(
-      u => u.id === savedUpgrade.id
-    )
+    const upgrade = upgrades.find((u) => u.id === savedUpgrade.id)
 
     if (!upgrade) {
       continue
@@ -77,4 +70,41 @@ export function startAutoSave() {
   setInterval(() => {
     saveGame()
   }, 5000)
+}
+
+export function exportSaveFile() {
+  saveGame()
+
+  const rawSave = localStorage.getItem(SAVE_KEY)
+
+  if (!rawSave) {
+    return
+  }
+
+  const blob = new Blob([rawSave], {
+    type: "text/plain"
+  })
+
+  const url = URL.createObjectURL(blob)
+
+  const a = document.createElement("a")
+  a.href = url
+  a.download = "incremental-save.txt"
+  a.click()
+
+  URL.revokeObjectURL(url)
+}
+
+export async function importSaveFile(file: File) {
+  const text = await file.text()
+
+  localStorage.setItem(SAVE_KEY, text)
+
+  loadGame()
+}
+
+export function resetGame() {
+  localStorage.removeItem(SAVE_KEY)
+
+  location.reload()
 }

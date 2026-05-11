@@ -8,12 +8,22 @@ export function formatNumber(value: number): string {
     return "∞"
   }
 
-  if (Math.abs(value) < 0.01 && value !== 0) {
-    return value.toExponential(2)
+  function truncate(num: number, digits: number) {
+    const factor = 10 ** digits
+
+    return Math.trunc(num * factor) / factor
+  }
+
+  if (Math.abs(value) < 1 && value !== 0) {
+    return truncate(value, 3).toString()
+  }
+
+  if (value < 100) {
+    return truncate(value, 2).toString()
   }
 
   if (value < 1000) {
-    return value.toFixed(2)
+    return truncate(value, 1).toString()
   }
 
   const units = [
@@ -39,5 +49,5 @@ export function formatNumber(value: number): string {
     unitIndex++
   }
 
-  return `${value.toFixed(2)}${units[unitIndex]}`
+  return `${truncate(value, 1)}${units[unitIndex]}`
 }
