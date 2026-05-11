@@ -123,10 +123,6 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="dev-banner">
-    DEV BUILD
-  </div>
-
   <MilestonePanel />
 
   <main class="game">
